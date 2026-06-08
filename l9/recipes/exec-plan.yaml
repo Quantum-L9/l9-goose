@@ -1,0 +1,43 @@
+# L9 Executive Execution Plan Recipe
+# Usage: goose run --recipe l9/recipes/exec-plan.yaml --params task_slug=<slug>
+
+version: 1.0.0
+title: L9 Exec-Plan Task Runner
+description: |
+  Runs a single bounded task against the L9 harness control loop.
+  Reads the exec-plan from docs/exec-plans/<task_slug>.md, validates
+  invariants, executes in sandbox, and writes findings to ops/janitor/findings-log.md.
+
+parameters:
+  - key: task_slug
+    input_type: string
+    requirement: required
+    description: Slug matching a file in docs/exec-plans/<task_slug>.md
+  - key: hitl_tier
+    input_type: string
+    requirement: optional
+    description: "Override HITL tier: AUTO | FAST | STANDARD | ELEVATED | BLOCK"
+    default: "STANDARD"
+
+steps:
+  - action: read_file
+    path: "docs/exec-plans/{{ task_slug }}.md"
+    store_as: plan_text
+
+  - action: prompt
+    content: |
+      You are the L9 Planner.
+      PLAN:
+      {{ plan_text }}
+
+      INVARIANTS (never violate):
+      - INV-ARCH-1: Never modify files outside the declared scope in the plan.
+      - INV-ARCH-2: Never merge a PR that breaks structural tests or custom linters.
+      - SEC-1: Sandbox execution only. No outbound network except allow-list.
+      - SEC-2: HITL tier {{ hitl_tier }} — await approval on matching commands.
+
+      Execute the plan. After each tool call emit a one-line SENSOR log:
+      [SENSOR] <tool> | <outcome> | <tokens_remaining_estimate>
+
+      When done, write a findings entry to ops/janitor/findings-log.md using the
+      append template in that file.

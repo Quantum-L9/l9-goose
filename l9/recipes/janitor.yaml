@@ -1,0 +1,30 @@
+# L9 Janitor Drift-Scan Recipe
+# Usage: goose run --recipe l9/recipes/janitor.yaml
+
+version: 1.0.0
+title: L9 Janitor — Drift Scanner
+description: |
+  Scans the repo for architectural drift, stale TODO/FIXME markers older than 14 days,
+  violated module boundaries, and security anti-patterns.
+  Findings are appended to ops/janitor/findings-log.md.
+  High-confidence fixes are promoted to docs/janitor/golden-principles.md.
+
+steps:
+  - action: prompt
+    content: |
+      You are the L9 Janitor subagent.
+
+      MISSION:
+      1. Run the drift-scan signatures in docs/janitor/golden-principles.md.
+      2. Search for TODO/FIXME comments with git log --all --format="%ci %s" -- '*.py' '*.ts'
+         and flag any older than 14 days.
+      3. Check all Python imports cross module boundaries (docs/arch/chassis-engine-boundary.md).
+      4. Flag any hardcoded secrets (no actual values — flag the pattern only).
+
+      OUTPUT FORMAT:
+      For each finding:
+        FINDING | <file>:<line> | <severity: LOW|MED|HIGH|CRIT> | <description>
+        SUGGESTED_FIX: <one-line fix>
+        PROMOTE_TO_GOLDEN: <yes/no> — yes if the fix prevents a whole class of future failures
+
+      After all findings, append a summary block to ops/janitor/findings-log.md.

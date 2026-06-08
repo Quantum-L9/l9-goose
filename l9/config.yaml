@@ -1,0 +1,52 @@
+# ~/.config/goose/config.yaml  — L9 fully-configured overlay
+# Copy to ~/.config/goose/config.yaml before running goose.
+# Model is a replaceable component (L9 Master Kernel §0). Swap provider freely.
+
+GOOSE_PROVIDER: anthropic
+GOOSE_MODEL: claude-opus-4-5           # generator default; evaluator can use a smaller model
+GOOSE_MODE: smart_approve              # enforce approvals; aligns with L9 HITL matrix
+
+# ── Extensions / MCP wiring ──────────────────────────────────────────────────
+extensions:
+  developer:
+    enabled: true
+    type: builtin
+    timeout: 600
+    # local FS writes → HITL_FAST tier
+
+  computercontroller:
+    enabled: false                      # enable only in sandboxed desktop env
+    type: builtin
+    timeout: 300
+
+  memory:
+    enabled: true
+    type: builtin
+    timeout: 120
+
+  l9-mcp-toolshed:
+    enabled: true
+    type: stdio
+    cmd: uvx
+    args: ["mcp-server-fetch"]          # swap for your actual MCP entrypoint
+    timeout: 300
+    # tenant writes → HITL_STANDARD tier (see docs/security/hitl-matrix.md)
+
+  l9-neo4j:
+    enabled: false                      # enable when NebulaGraph/Neo4j MCP server is running
+    type: stdio
+    cmd: uvx
+    args: ["mcp-neo4j-cypher"]
+    timeout: 300
+    # read-only → AUTO tier
+
+  l9-postgres:
+    enabled: false                      # enable with Supabase MCP or pg MCP
+    type: stdio
+    cmd: uvx
+    args: ["mcp-server-postgres", "postgresql://localhost/l9db"]
+    timeout: 300
+
+# ── Context / safety defaults ─────────────────────────────────────────────────
+# GOOSE_CONTEXT_STRATEGY: summarize    # compaction on context pressure
+# GOOSE_MAX_TURNS: 200

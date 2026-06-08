@@ -1,0 +1,48 @@
+# L9 Odoo 19 Module Scaffold Recipe
+# Usage: goose run --recipe l9/recipes/odoo-module-scaffold.yaml --params module_name=<name>
+
+version: 1.0.0
+title: L9 Odoo 19 Module Scaffolder
+description: |
+  Generates a compliant Odoo 19 module skeleton following L9 Kernel conventions.
+  Outputs: __manifest__.py, models/, views/, security/, tests/, README.rst
+
+parameters:
+  - key: module_name
+    input_type: string
+    requirement: required
+    description: Technical name of the Odoo module (snake_case)
+  - key: module_category
+    input_type: string
+    requirement: optional
+    default: "Legal"
+    description: Odoo module category
+
+steps:
+  - action: prompt
+    content: |
+      You are the L9 Odoo Module Scaffolder.
+
+      Generate a complete Odoo 19 module skeleton for: {{ module_name }}
+      Category: {{ module_category }}
+
+      REQUIRED FILES (create each using developer tools):
+      - addons/{{ module_name }}/__init__.py
+      - addons/{{ module_name }}/__manifest__.py   (version 19.0.1.0.0, license LGPL-3)
+      - addons/{{ module_name }}/models/__init__.py
+      - addons/{{ module_name }}/models/{{ module_name }}.py   (base model stub)
+      - addons/{{ module_name }}/views/{{ module_name }}_views.xml
+      - addons/{{ module_name }}/security/ir.model.access.csv
+      - addons/{{ module_name }}/security/security.xml
+      - addons/{{ module_name }}/tests/__init__.py
+      - addons/{{ module_name }}/tests/test_{{ module_name }}.py  (TransactionCase stub)
+      - addons/{{ module_name }}/README.rst
+
+      INVARIANTS:
+      - INV-ARCH-1: module lives in addons/ only — never in Odoo core.
+      - INV-TP-3: every model field has a string= and help= attribute.
+      - SEC-3: ir.model.access.csv must include at least user-level read restriction.
+      - All files must pass `python -m py_compile` and `xmllint --noout`.
+
+      After creating files, run structural tests:
+        python -m pytest tests/structural/ -x -q
